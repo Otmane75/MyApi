@@ -1,0 +1,11 @@
+python -m venv myenv
+myenv\Scripts\activate
+pip install flask
+"creation du main"
+flask run
+##################################
+rendre api restfull
+
+
+
+pip install flask-restful
