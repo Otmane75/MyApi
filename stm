@@ -87,15 +87,22 @@ SQLAlchemy==2.0.19
 typing-extensions==4.7.1
 urllib3==2.0.3
 watchdog==3.0.0
------------------------------------------------------------
+close_serial_ports()
+wcwidth==0.2.6
+websocket-client==1.6.1
+websockets==11.0.3
+----------------------------------------------------------------------
+import os
+import psutil
+
 # Fonction pour terminer les activités de PySerial
 def close_serial_ports():
-    ports = list(serial.tools.list_ports.comports())
-    for port in ports:
+    for proc in psutil.process_iter():
         try:
-            ser = serial.Serial(port.device)
-            ser.close()
-        except serial.SerialException:
+            pinfo = proc.as_dict(attrs=['pid', 'name'])
+            if 'python' in pinfo['name'].lower() and 'serial' in pinfo['name'].lower():
+                os.kill(pinfo['pid'], 9)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
 
 # Exemple d'utilisation
@@ -103,7 +110,8 @@ def close_serial_ports():
 
 # Ferme toutes les connexions série en cours
 close_serial_ports()
-wcwidth==0.2.6
-websocket-client==1.6.1
-websockets==11.0.3
+
+# Utilisez maintenant la fonction spécifique
+# ... votre code ici ...
+
 
