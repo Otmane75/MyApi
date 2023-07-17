@@ -87,6 +87,22 @@ SQLAlchemy==2.0.19
 typing-extensions==4.7.1
 urllib3==2.0.3
 watchdog==3.0.0
+-----------------------------------------------------------
+# Fonction pour terminer les activités de PySerial
+def close_serial_ports():
+    ports = list(serial.tools.list_ports.comports())
+    for port in ports:
+        try:
+            ser = serial.Serial(port.device)
+            ser.close()
+        except serial.SerialException:
+            pass
+
+# Exemple d'utilisation
+# Ferme toutes les connexions série avant d'utiliser une fonction spécifique
+
+# Ferme toutes les connexions série en cours
+close_serial_ports()
 wcwidth==0.2.6
 websocket-client==1.6.1
 websockets==11.0.3
