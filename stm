@@ -1,0 +1,43 @@
+#include <string.h>
+
+void split(const char *str, const char *delimiters, char **tokens, int maxTokens) {
+    char *token;
+    int tokenIndex = 0;
+
+    // Copie de la chaîne originale dans une variable modifiable
+    char *strCopy = strdup(str);
+
+    // Extraction du premier token
+    token = strtok(strCopy, delimiters);
+
+    // Tant qu'il y a des tokens et que le nombre maximum n'est pas atteint
+    while (token != NULL && tokenIndex < maxTokens) {
+        tokens[tokenIndex] = token;
+        tokenIndex++;
+
+        // Extraction du prochain token
+        token = strtok(NULL, delimiters);
+    }
+
+    // Libération de la mémoire allouée pour la copie de la chaîne
+    free(strCopy);
+}
+
+-----------------------------------------------------------------------------------------------
+#include <stdio.h>
+
+#define MAX_TOKENS 10
+
+int main() {
+    char str[] = "Hello,World,How,Are,You";
+    char delimiters[] = ",";
+    char *tokens[MAX_TOKENS];
+
+    split(str, delimiters, tokens, MAX_TOKENS);
+
+    for (int i = 0; i < MAX_TOKENS && tokens[i] != NULL; i++) {
+        printf("Token %d: %s\n", i, tokens[i]);
+    }
+
+    return 0;
+}
