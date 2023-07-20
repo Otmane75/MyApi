@@ -134,3 +134,31 @@ Clé privée RSA : {0x04, 0x04, 0x4c, 0x45, 0x18, 0x62, 0x91, 0x77, 0xc7, 0xcd, 
 0x23, 0xaa, 0xb8, 0xa4, 0x4f, 0xdd, 0x18, 0xbf, 0x75, 0x54, 0x72, 0x67, 0x4b, 0xe0, 0x6e, 0x1c, 0x86, 0xd9, 0xb0, 0xb7, 0xd4, 0x6e, 
 0xa4, 0xec, 0xcc, 0x7b, 0x73, 0xd4, 0xeb, 0xec, 0x0d, 0x17, 0xf8, 0x83, 0xc2, 0x66, 0x8f, 0x5c, 0x92, 0xa2, 0x18, 0x60, 0xa5, 0x55, 
 0xbf, 0x51, 0x28}
+---------------------------------------------------------------------------------------------
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+
+def extract_csr_info(csr_data):
+    csr = x509.load_pem_x509_csr(csr_data, default_backend())
+
+    # Récupère les informations du sujet (sous réserve de modification)
+    subject = csr.subject
+
+    # Récupère la clé publique encodée selon X9.63
+    public_key_bytes = csr.public_key().public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint
+    )
+
+    return subject, public_key_bytes
+
+if __name__ == "__main__":
+    # Charger le contenu du CSR depuis un fichier (remplacez "csr_file.pem" par le nom de votre fichier)
+    with open("csr_file.pem", "rb") as csr_file:
+        csr_data = csr_file.read()
+
+    subject, public_key = extract_csr_info(csr_data)
+
+    print("Informations du sujet (sous réserve de modification) :", subject)
+    print("Clé publique (format X9.63) :", public_key.hex())
