@@ -833,3 +833,192 @@ char privkey_hex[] = "1E0776AAEBDAEC032A82837F2B054E5B7666AA3A926FE402E5FF6C88F7
 
   return 0;
 }
+///////////////////////////////////////////////////////////////
+#include "stm32f4xx.h"
+#include <stdint.h>
+
+// Taille de la clé RSA en bits
+#define RSA_KEY_BITS 2048  
+
+// Taille de la clé RSA en mots de 32 bits
+#define RSA_KEY_WORDS (RSA_KEY_BITS / 32)
+
+// Structure pour stocker les grands nombres
+typedef struct {
+  uint32_t data[RSA_KEY_WORDS];
+  uint32_t size;  
+} bignum;
+
+// Initialisation d'un grand nombre
+void bignum_init(bignum* n) {
+  n->size = RSA_KEY_WORDS;
+  for(int i=0; i<RSA_KEY_WORDS; i++) {
+    n->data[i] = 0;
+  }
+}
+
+// Affectation d'un grand nombre à partir d'un tableau
+void bignum_from_array(bignum* n, uint32_t* src, uint32_t size) {
+  for(int i=0; i<size; i++) {
+    n->data[i] = src[i];
+  }
+  n->size = size;
+}
+
+// Conversion hexadecimal vers bignum
+void bignum_from_hex(bignum* n, char* src) {
+  uint32_t buffer[RSA_KEY_WORDS];
+  int idx = 0;
+  
+  for(int i=0; i<strlen(src); i+=8) {
+    char hex[9] = {0};
+    strncpy(hex, src+i, 8);
+    buffer[idx++] = strtoul(hex, NULL, 16);
+  }
+  
+  bignum_from_array(n, buffer, idx);
+}
+
+// Addition de deux grands nombres
+void bignum_add(bignum* a, bignum* b, bignum* c) {
+  uint32_t carry = 0;
+  for(int i=0; i<a->size; i++) {
+    uint64_t temp = (uint64_t)a->data[i] + (uint64_t)b->data[i] + carry;
+    c->data[i] = (uint32_t)temp;
+    carry = temp >> 32;
+  }
+  c->size = a->size;
+}
+
+// Multiplication de deux grands nombres
+void bignum_mul(bignum* a, bignum* b, bignum* c) {
+  bignum_init(c);
+  
+  for(int i=0; i<a->size; i++) {
+    uint64_t carry = 0;
+    for(int j=0; j<b->size; j++) {
+      uint64_t temp = (uint64_t)a->data[i] * (uint64_t)b->data[j] + carry;
+      carry = temp >> 32;
+      temp &= 0xFFFFFFFF;
+      
+      if(i+j < c->size) {
+        c->data[i+j] += (uint32_t)temp;
+      } else {
+        carry += c->data[i+j] / (i+j+1);
+        c->data[i+j] %= (i+j+1);
+      }
+    }
+  }  
+}
+
+// Élévation à la puissance modulaire
+void bignum_pow_mod(bignum* x, bignum* e, bignum* n, bignum* y) {
+
+  bignum_init(y);
+  bignum_from_array(y, x->data, x->size);
+  
+  for(int i=0; i<e->size; i++) {
+    for(int j=0; j<32; j++) {
+      if(e->data[i] & (1 << j)) {
+        bignum_mul(y, y, y);
+        bignum_mod(y, n);
+      }
+      
+      bignum_mul(y, y, y);
+      bignum_mod(y, n);
+    }
+  }
+}
+
+// Modulo entre deux grands nombres
+void bignum_mod(bignum* a, bignum* n) {
+
+  bignum tmp;
+  bignum_init(&tmp);
+  
+  while(bignum_cmp(a, n) >= 0) {
+    bignum_sub(a, a, n);
+  } 
+}
+
+// Soustraction de deux grands nombres
+void bignum_sub(bignum* a, bignum* b, bignum* c) {
+
+  uint32_t borrow = 0;
+
+  for(int i=0; i<a->size; i++) {
+    uint64_t temp = (uint64_t)a->data[i] - (uint64_t)b->data[i] - borrow;
+
+    if (temp & 0x100000000) {
+      borrow = 1;
+    } else {
+      borrow = 0;
+    }
+
+    c->data[i] = (uint32_t)temp;
+  }
+
+  c->size = a->size;
+}
+
+// Comparaison de deux grands nombres
+// Renvoie -1 si a < b, 0 si a == b, 1 si a > b
+int bignum_cmp(bignum* a, bignum* b) {
+  for(int i = a->size-1; i >= 0; i--) {
+    if(a->data[i] > b->data[i]) return 1;
+    if(a->data[i] < b->data[i]) return -1;
+  }
+  return 0; 
+}
+
+// Teste si deux grands nombres sont égaux  
+int bignum_equal(bignum* a, bignum* b) {
+  return (bignum_cmp(a, b) == 0);
+}
+
+// Chiffrement RSA
+void rsa_encrypt(bignum* c, bignum* m, bignum* e, bignum* n) {
+  bignum_pow_mod(c, m, e, n);
+}
+
+// Déchiffrement RSA
+void rsa_decrypt(bignum* m, bignum* c, bignum* d, bignum* n) {
+  bignum_pow_mod(m, c, d, n);
+}
+
+int main() {
+
+  bignum msg, enc, dec, e, d, n;
+
+  bignum_init(&msg);
+  bignum_init(&enc); 
+  bignum_init(&dec);
+  bignum_init(&e);
+  bignum_init(&d);
+  bignum_init(&n);
+
+  // Charger la clé publique
+  char pubkey[] = "B374FCCDAD2...";
+  bignum_from_hex(&n, pubkey); 
+  bignum_from_array(&e, (uint32_t[RSA_KEY_WORDS]){10001}, 1);
+
+  // Charger la clé privée  
+  char privkey[] = "1E0776AAEBDA...";
+  bignum_from_hex(&d, privkey);
+
+  // Chiffrer et déchiffrer
+  char msg_str[] = "48656C6C6F20576F726C6421";  
+  bignum_from_hex(&msg, msg_str);
+
+  rsa_encrypt(&enc, &msg, &e, &n);
+
+  rsa_decrypt(&dec, &enc, &d, &n);
+
+  if(bignum_equal(&msg, &dec)) {
+    // Succès 
+  } else {
+    // Échec
+  }
+
+  return 0;
+}
