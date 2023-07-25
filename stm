@@ -555,3 +555,69 @@ int main() {
     
     return 0;
 }
+-*-*-*-*-*-*-*--**-*-*-*-*
+#include <stdio.h>
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/rsa.h>
+#include <wolfssl/wolfcrypt/random.h>
+
+#define RSA_KEY_SIZE 2048
+#define RSA_PUBLIC_EXPONENT 65537
+#define RSA_TEST_BYTES 256 /* 2048 bit key */
+
+int main() {
+    int ret;
+    RsaKey rsaKey;
+    WC_RNG rng;
+    byte cipher[RSA_TEST_BYTES];
+    byte plain[RSA_TEST_BYTES];
+    byte decrypted[RSA_TEST_BYTES];
+    word32 cipherLen = sizeof(cipher);
+    word32 plainLen = sizeof(plain);
+    word32 decryptedLen = sizeof(decrypted);
+
+    const char* message = "Hello World";
+
+    /* Initialize the library */
+    wolfSSL_Init();
+
+    /* Initialize RNG */
+    if ((ret = wc_InitRng(&rng)) != 0) {
+        printf("Error in RNG initialization: %d\n", ret);
+        return ret;
+    }
+
+    /* Initialize RSA key */
+    if ((ret = wc_InitRsaKey(&rsaKey, NULL)) != 0) {
+        printf("Error in RSA key initialization: %d\n", ret);
+        return ret;
+    }
+
+    /* Generate RSA key */
+    if ((ret = wc_MakeRsaKey(&rsaKey, RSA_KEY_SIZE, RSA_PUBLIC_EXPONENT, &rng)) != 0) {
+        printf("Error in RSA key generation: %d\n", ret);
+        return ret;
+    }
+
+    /* Encrypt the message */
+    if ((ret = wc_RsaPublicEncrypt((byte*)message, strlen(message), cipher, cipherLen, &rsaKey, &rng)) < 0) {
+        printf("Error in RSA encryption: %d\n", ret);
+        return ret;
+    }
+
+    /* Decrypt the message */
+    if ((ret = wc_RsaPrivateDecrypt(cipher, ret, decrypted, decryptedLen, &rsaKey)) < 0) {
+        printf("Error in RSA decryption: %d\n", ret);
+        return ret;
+    }
+
+    /* Print the decrypted message */
+    printf("Decrypted message: %s\n", decrypted);
+
+    /* Clean up */
+    wc_FreeRsaKey(&rsaKey);
+    wc_FreeRng(&rng);
+    wolfSSL_Cleanup();
+
+    return 0;
+}
