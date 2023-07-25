@@ -680,3 +680,156 @@ int main() {
 
     return 0;
 }
+============================================================================================================
+#include "stm32f4xx.h"
+#include <string.h>
+
+// Taille de la clé RSA en bits
+#define RSA_KEY_BITS 2048
+
+// Structure pour stocker les grands nombres
+typedef struct {
+  uint32_t data[RSA_KEY_BITS / 32];
+  uint32_t size; 
+} bignum;
+
+// Multiplication de grands nombres
+void mul(bignum *a, bignum *b, bignum *c) {
+  // Implémentation omise pour brièveté 
+}
+
+// Elévation à la puissance modulaire 
+void pow_mod(bignum *x, bignum *e, bignum *n, bignum *y) {
+  // Implémentation omise pour brièveté
+}
+
+// Chiffrement RSA 
+void rsa_encrypt(bignum *c, bignum *m, bignum *e, bignum *n) {
+  pow_mod(c, m, e, n);
+}
+
+// Déchiffrement RSA
+void rsa_decrypt(bignum *m, bignum *c, bignum *d, bignum *n) {
+  pow_mod(m, c, d, n); 
+}
+
+int main() {
+
+  bignum msg, enc, dec, e, d, n; 
+
+  // Initialiser les grands nombres
+  bignum_init(&msg);
+  bignum_init(&enc);
+  bignum_init(&dec);
+  bignum_init(&e);
+  bignum_init(&d);
+  bignum_init(&n);
+
+  // Charger les clés publique et privée
+  
+  // Clé publique 
+  char pubkey[] = "B374FCCDAD2..."; 
+  bignum_from_hex(&n, pubkey);
+  bignum_set_ui(&e, 10001);
+
+  // Clé privée
+  char privkey[] = "1E0776AAEBDA...";
+  bignum_from_hex(&d, privkey);
+
+  // Chiffrer et déchiffrer
+  
+  // Message clair 
+  char msg_str[] = "48656C6C6F20576F726C6421";
+  bignum_from_hex(&msg, msg_str);
+
+  // Chiffrer
+  rsa_encrypt(&enc, &msg, &e, &n);
+
+  // Déchiffrer
+  rsa_decrypt(&dec, &enc, &d, &n);
+
+  // Vérifier résultat
+  if (bignum_equal(&msg, &dec)) {
+    printf("RSA decryption successful!");
+  } else {
+    printf("RSA decryption failed!"); 
+  }
+
+  // Libérer la mémoire
+  bignum_free(&msg);
+  // etc.
+
+  return 0;
+}
+===========
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <gmp.h>
+
+// Taille des clés en bits
+#define KEY_SIZE 2048 
+
+// Taille des clés en octets
+#define KEY_SIZE_OCTETS (KEY_SIZE / 8)
+
+// Chiffre un message avec la clé publique
+void rsa_encrypt(mpz_t c, mpz_t m, mpz_t e, mpz_t n) {
+  mpz_powm(c, m, e, n); 
+}
+
+// Déchiffre un message avec la clé privée
+void rsa_decrypt(mpz_t m, mpz_t c, mpz_t d, mpz_t n) {
+  mpz_powm(m, c, d, n);
+}
+
+int main() {
+
+  // Clés publique et privée
+  mpz_t n, e, d;
+  mpz_init(n);
+  mpz_init(e);
+  mpz_init(d);
+
+  // Message à chiffrer
+  mpz_t msg, enc, dec;
+  mpz_init(msg);
+  mpz_init(enc);
+  mpz_init(dec);
+
+  // Clé publique en hexadécimal
+  char pubkey_hex[] = "B374FCCDAD22AE5824B9DA65C1F94E6F5BEC68507BC22411F352CF88190DEF954916806AB9DC8CE780924A5F4024BB9A5655FEA38C5D42470F49FF2D95F54A5F3F0C3C2D14C89F497BA00D33A7E30F59918FF117E3E47D26E985E74A4C6E0F3AB76040078D61F0CB0D5BF7C267A50B4DD01F0E6F4D3E7D0D2C5B5CA7C3E";
+
+// Clé privée en hexadécimal  
+char privkey_hex[] = "1E0776AAEBDAEC032A82837F2B054E5B7666AA3A926FE402E5FF6C88F73931410519F8C8A6097455AAB84F8AEE5268D728CF575CFB206812703171AE21420E022E050395AB98FECF67BDCC6FBD0FF10203156266A07D7DAC7852FB1956B358F06C597C3A8C6F3365AA3D49D1B19E7C4BEBD93D015F66FC5A6535F836330FE30267B5D";
+
+  // Convertir les clés en bignums
+  mpz_set_str(n, pubkey_hex, 16);
+  mpz_set_str(e, "10001", 10);
+  mpz_set_str(d, privkey_hex, 16);
+
+  // Message en clair
+  mpz_set_str(msg, "48656C6C6F20576F726C6421", 16);
+  
+  // Chiffrer le message
+  rsa_encrypt(enc, msg, e, n);
+
+  // Afficher le message chiffré
+  gmp_printf("Message chiffré (hex) : %Zx\n", enc);
+
+  // Déchiffrer le message
+  rsa_decrypt(dec, enc, d, n);
+
+  // Afficher le message déchiffré
+  gmp_printf("Message déchiffré : %Zx\n", dec);
+
+  // Libérer la mémoire
+  mpz_clear(n);
+  mpz_clear(e); 
+  mpz_clear(d);
+  mpz_clear(msg);
+  mpz_clear(enc);
+  mpz_clear(dec);
+
+  return 0;
+}
