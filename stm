@@ -357,6 +357,14 @@ Message déchiffré: Bonjour, ceci est un message secret!
 const char private_key_hex[] = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; // Remplacer par votre clé privée en hexadécimal
 const char public_key_hex[] = "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY"; // Remplacer par votre clé publique en hexadécimal
 
+----------------------------
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/rsa.h>
+
+// Déclaration des clés publiques et privées sous forme de chaînes hexadécimales
+const char private_key_hex[] = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; // Remplacer par votre clé privée en hexadécimal
+const char public_key_hex[] = "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY"; // Remplacer par votre clé publique en hexadécimal
+
 // Taille des clés RSA (en octets)
 #define KEY_SIZE 2048
 
@@ -455,3 +463,4 @@ int main() {
     
     return 0;
 }
+
