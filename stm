@@ -464,3 +464,94 @@ int main() {
     return 0;
 }
 
+*************************************************************************
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/ecc.h>
+
+// Taille du buffer pour la clé privée et publique
+#define KEY_SIZE 32 // ECC P-256 a une taille de clé de 256 bits
+
+// Fonction pour générer une paire de clés ECC P-256
+void generate_ecc_key_pair(byte* private_key, byte* public_key) {
+    int ret;
+    ecc_key key;
+    
+    wc_ecc_init(&key);
+    
+    // Générer la paire de clés ECC P-256
+    if ((ret = wc_ecc_make_key(NULL, KEY_SIZE, &key)) != 0) {
+        // Gérer l'erreur ici
+        // Remarque : Assurez-vous que vous avez initialisé WolfSSL avec le support ECC
+    }
+    
+    // Copier la clé privée générée dans le buffer private_key
+    XMEMCPY(private_key, key.k, KEY_SIZE);
+    
+    // Copier la clé publique générée dans le buffer public_key
+    if ((ret = wc_ecc_export_x963(&key, public_key, KEY_SIZE, ECC_CURVE_TYPE)) != 0) {
+        // Gérer l'erreur ici
+    }
+    
+    wc_ecc_free(&key);
+}
+
+// Fonction pour chiffrer un message en utilisant ECC P-256
+int ecc_encrypt(const byte* public_key, const byte* plainText, byte* cipherText, word32 plainTextLen) {
+    int ret;
+    ecc_key key;
+    
+    wc_ecc_init(&key);
+    
+    // Charger la clé publique à partir du buffer public_key
+    if ((ret = wc_ecc_import_x963_ex(public_key, KEY_SIZE, &key, ECC_CURVE_TYPE)) != 0) {
+        // Gérer l'erreur ici
+    }
+    
+    // Chiffrer le message en utilisant la clé publique
+    if ((ret = wc_ecc_encrypt_key_ex(plainText, plainTextLen, cipherText, plainTextLen + 16, NULL, 0, &key, ECC_CURVE_TYPE)) < 0) {
+        // Gérer l'erreur ici
+    }
+    
+    wc_ecc_free(&key);
+    return ret; // Taille du texte chiffré
+}
+
+int main() {
+    // Buffers pour la clé privée et publique
+    byte private_key[KEY_SIZE];
+    byte public_key[KEY_SIZE];
+    
+    // Buffer pour le message à chiffrer et le texte chiffré
+    byte plainText[] = "Hello, this is a secret message!";
+    word32 plainTextLen = sizeof(plainText) - 1; // Exclure le caractère nul de la chaîne
+    byte cipherText[plainTextLen + 16]; // La taille du texte chiffré est légèrement supérieure à la taille du message original
+    
+    // Générer une paire de clés ECC P-256
+    generate_ecc_key_pair(private_key, public_key);
+    
+    // Chiffrer le message en utilisant la clé publique
+    int cipherTextLen = ecc_encrypt(public_key, plainText, cipherText, plainTextLen);
+    if (cipherTextLen < 0) {
+        // Échec du chiffrement
+        // Gérer l'erreur ici
+    }
+    
+    // Afficher le message original
+    printf("Message original: %s\n", plainText);
+    
+    // Afficher la clé publique (en hexadécimal)
+    printf("Clé publique: ");
+    for (int i = 0; i < KEY_SIZE; i++) {
+        printf("%02X", public_key[i]);
+    }
+    printf("\n");
+    
+    // Afficher le texte chiffré (en hexadécimal)
+    printf("Message chiffré: ");
+    for (int i = 0; i < cipherTextLen; i++) {
+        printf("%02X", cipherText[i]);
+    }
+    printf("\n");
+    
+    return 0;
+}
