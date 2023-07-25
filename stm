@@ -1022,3 +1022,75 @@ int main() {
 
   return 0;
 }
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+#include "mbedtls/config.h"
+#include "mbedtls/platform.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/rsa.h"
+
+#define RSA_KEY_SIZE 2048
+
+int main() {
+    int ret;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_rsa_context rsa;
+
+    // Initialisation
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
+
+    // Seed the random number generator
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, NULL, 0)) != 0) {
+        // Handle error
+    }
+
+    // Generate RSA key pair
+    if ((ret = mbedtls_rsa_gen_key(&rsa, mbedtls_ctr_drbg_random, &ctr_drbg, RSA_KEY_SIZE, 65537)) != 0) {
+        // Handle error
+    }
+
+    // Sample message to be encrypted and decrypted
+    unsigned char message[] = "Hello, this is a secret message!";
+    size_t message_len = sizeof(message) - 1; // Exclude the null terminator
+
+    // Buffer to hold the encrypted message
+    unsigned char encrypted[MBEDTLS_MPI_MAX_SIZE];
+
+    // Buffer to hold the decrypted message
+    unsigned char decrypted[MBEDTLS_MPI_MAX_SIZE];
+
+    // Encrypt the message using RSA public key
+    if ((ret = mbedtls_rsa_pkcs1_encrypt(&rsa, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PUBLIC,
+                                         message_len, message, encrypted)) != 0) {
+        // Handle error
+    }
+
+    // Decrypt the message using RSA private key
+    size_t decrypted_len;
+    if ((ret = mbedtls_rsa_pkcs1_decrypt(&rsa, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PRIVATE,
+                                         &decrypted_len, encrypted, decrypted, sizeof(decrypted))) != 0) {
+        // Handle error
+    }
+
+    // Null-terminate the decrypted message
+    decrypted[decrypted_len] = '\0';
+
+    // Print the results
+    printf("Original Message: %s\n", message);
+    printf("Encrypted Message: ");
+    for (size_t i = 0; i < decrypted_len; i++) {
+        printf("%02X", encrypted[i]);
+    }
+    printf("\n");
+    printf("Decrypted Message: %s\n", decrypted);
+
+    // Cleanup
+    mbedtls_rsa_free(&rsa);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
+
+    return 0;
+}
