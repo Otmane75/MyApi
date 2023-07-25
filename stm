@@ -1094,3 +1094,67 @@ int main() {
 
     return 0;
 }
+pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+#include "mbedtls/config.h"
+#include "mbedtls/platform.h"
+#include "mbedtls/rsa.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/error.h"
+
+#include <stdio.h>
+#include <string.h>
+
+#define KEY_SIZE 2048
+#define EXPONENT 65537
+
+void print_error(const char *message, int error_code) {
+    char error_buf[100];
+    mbedtls_strerror(error_code, error_buf, sizeof(error_buf));
+    printf("%s - Error code: %d - %s\n", message, error_code, error_buf);
+}
+
+int main() {
+    mbedtls_rsa_context rsa;
+    mbedtls_pk_context pk;
+    unsigned char plain_text[16] = "Hello, world!";
+    unsigned char encrypted[256] = {};
+    unsigned char decrypted[16] = {};
+
+    mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
+    mbedtls_pk_init(&pk);
+
+    int ret = mbedtls_rsa_gen_key(&rsa, mbedtls_ctr_drbg_random, NULL, KEY_SIZE, EXPONENT);
+    if (ret != 0) {
+        print_error("RSA key generation failed", ret);
+        return -1;
+    }
+
+    ret = mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
+    if (ret != 0) {
+        print_error("PK setup failed", ret);
+        return -1;
+    }
+
+    mbedtls_rsa_copy(mbedtls_pk_rsa(pk), &rsa);
+
+    size_t olen = 0;
+    ret = mbedtls_pk_encrypt(&pk, plain_text, sizeof(plain_text), encrypted, &olen, sizeof(encrypted), mbedtls_ctr_drbg_random, NULL);
+    if (ret != 0) {
+        print_error("Encryption failed", ret);
+        return -1;
+    }
+
+    ret = mbedtls_pk_decrypt(&pk, encrypted, olen, decrypted, &olen, sizeof(decrypted), mbedtls_ctr_drbg_random, NULL);
+    if (ret != 0) {
+        print_error("Decryption failed", ret);
+        return -1;
+    }
+
+    printf("Decrypted message: %s\n", decrypted);
+
+    mbedtls_rsa_free(&rsa);
+    mbedtls_pk_free(&pk);
+
+    return 0;
+}
+
