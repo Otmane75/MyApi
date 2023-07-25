@@ -621,3 +621,62 @@ int main() {
 
     return 0;
 }
+**********************
+int main() {
+    int ret;
+    RsaKey rsaKey;
+    byte cipher[RSA_MAX_SIZE];
+    byte plain[RSA_MAX_SIZE];
+    word32 cipherLen = sizeof(cipher);
+    word32 plainLen = sizeof(plain);
+
+    const char* message = "Hello World";
+
+    /* Initialize the library */
+    wolfCrypt_Init();
+
+    /* Initialize RNG */
+    WC_RNG rng;
+    if ((ret = wc_InitRng(&rng)) != 0) {
+        printf("Error in RNG initialization: %d\n", ret);
+        return ret;
+    }
+
+    /* Initialize RSA key */
+    if ((ret = wc_InitRsaKey(&rsaKey, NULL)) != 0) {
+        printf("Error in RSA key initialization: %d\n", ret);
+        return ret;
+    }
+
+    /* Generate RSA key pair */
+    if ((ret = wc_MakeRsaKey(&rsaKey, &rng, RSA_KEYSIZE_RSA, 65537)) != 0) {
+        printf("Error in RSA key generation: %d\n", ret);
+        return ret;
+    }
+
+    /* Encrypt the message */
+    if ((ret = wc_RsaPublicEncrypt((const byte*)message, strlen(message), cipher, cipherLen, &rsaKey, &rng)) < 0) {
+        printf("Error in RSA encryption: %d\n", ret);
+        return ret;
+    }
+
+    /* Decrypt the message */
+    if ((ret = wc_RsaPrivateDecrypt(cipher, ret, plain, plainLen, &rsaKey)) < 0) {
+        printf("Error in RSA decryption: %d\n", ret);
+        return ret;
+    }
+
+    /* Print the decrypted message */
+    if (ret != strlen(message)) {
+        printf("Decryption error: %d\n", ret);
+    } else {
+        printf("Decrypted message: %s\n", plain);
+    }
+
+    /* Clean up */
+    wc_FreeRsaKey(&rsaKey);
+    wc_FreeRng(&rng);
+    wolfCrypt_Cleanup();
+
+    return 0;
+}
