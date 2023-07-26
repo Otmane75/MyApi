@@ -1157,4 +1157,63 @@ int main() {
 
     return 0;
 }
+--------------------------------------------------------
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+
+// Convertit un caractère hexadécimal en valeur décimale
+uint8_t hexToDecimal(char c) {
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    else if (c >= 'a' && c <= 'f')
+        return 10 + c - 'a';
+    else if (c >= 'A' && c <= 'F')
+        return 10 + c - 'A';
+    else
+        return 0; // Caractère invalide
+}
+
+// Convertit une chaîne hexadécimale en une table de bytes
+void hexStringToBytes(const char *hexString, uint8_t *bytes, size_t bufferSize) {
+    size_t len = strlen(hexString);
+    if (len % 2 != 0) {
+        printf("Erreur : La chaîne hexadécimale doit avoir un nombre pair de caractères.\n");
+        return;
+    }
+
+    if (len / 2 > bufferSize) {
+        printf("Erreur : La taille du tampon est insuffisante pour contenir les bytes.\n");
+        return;
+    }
+
+    for (size_t i = 0; i < len / 2; i++) {
+        uint8_t highNibble = hexToDecimal(hexString[i * 2]);
+        uint8_t lowNibble = hexToDecimal(hexString[i * 2 + 1]);
+        bytes[i] = (highNibble << 4) | lowNibble;
+    }
+}
+
+int main() {
+    // Chaîne hexadécimale à convertir
+    char table[] = "1a2B3C4d";
+
+    // Calcul de la taille de la table de bytes nécessaire (la moitié de la taille de la chaîne)
+    size_t bufferSize = strlen(table) / 2;
+    uint8_t cip[bufferSize];
+
+    // Conversion de la chaîne hexadécimale en table de bytes
+    hexStringToBytes(table, cip, bufferSize);
+
+    // Affichage des résultats
+    printf("Chaîne hexadécimale : %s\n", table);
+    printf("Table de bytes : ");
+    for (size_t i = 0; i < bufferSize; i++) {
+        printf("%02X ", cip[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
+
 
