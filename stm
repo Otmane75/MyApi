@@ -13,7 +13,31 @@ Public key (X9.62 format) length: 65
 0xf6, 0xb4, 0xef, 0x0a, 0x3a, 0xe8, 0xd5}longeur: 32
 {0x04, 0x11, 0x96, 0x23, 0x95, 0x49, 0x1b, 0xad, 0x2c, 0x6c, 0x9d, 0x9c, 0x94, 0x4b, 0x85, 0xd1, 0x89, 0xdf, 0x2d, 0xd9, 0xd6, 0xf3, 0xce, 0x1e, 0x90, 
 0xef, 0xce, 0x7d, 0x8c, 0xa1, 0xb9, 0x24, 0xc8, 0xbe, 0x04, 0x1d, 0x1b, 0x4c, 0xe6, 0xc7, 0x0f, 0x28, 0xd0, 0xb2, 0xf7, 0x5d, 0x02, 0xcd, 0x8e, 0x09, 0x0b, 0x45, 0xa2, 0x80, 0x35, 0x87, 0xc8, 0x20, 0xaa, 0xe4, 0x11, 0x8e, 0x1d, 0x1c, 0x78}longeur: 65
----------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+============================================================================================================================================
+import base64
+from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
+
+
+def extract_pubkey_ecc_x963():
+
+    with open("certificatePerso_ecc.pem", "rb") as f:
+        cert_data = f.read()
+    cert = x509.load_pem_x509_certificate(cert_data)
+    public_key = cert.public_key()
+    ansi_public_key = public_key.public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint
+    )
+
+    hex_public_key = ansi_public_key.hex()
+    return hex_public_key
+
+
+print(extract_pubkey_ecc_x963())
+===================================================================================================================================================
 Clé privée en format hexadécimal: 92e4686442d5ff9f388bad4ec4a4b35b008174e21c8d9928a5dfe5afe455961e
 Public key (X9.62 format) length: 040fefce34557abb759998d85508651d035031ed87759819fa5215de0a12321bbc1f5704f1e96a480ffc33732334a5a39f3fc9c88f2fbe7ec3b7ab106ceaabe8c4
 Public key (X9.62 format) length: 65
