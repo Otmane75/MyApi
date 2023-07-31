@@ -1,3 +1,36 @@
+String certificate = "..."; // Le certificat au format PEM 
+
+CertificateFactory cf = CertificateFactory.getInstance("X.509");  
+Certificate cert = cf.generateCertificate(new ByteArrayInputStream(certificate.getBytes()));
+
+PublicKey publicKey = cert.getPublicKey();
+
+if (publicKey instanceof ECPublicKey) {  
+    ECPublicKey ecPublicKey = (ECPublicKey) publicKey;  
+    
+    // Récupérer les paramètres de la courbe 
+    ECParameterSpec params = ecPublicKey.getParams();  
+      
+    // Vérifier que c'est la courbe secp256r1
+    if (params.getCurve().equals(CurveName.SECP256R1)) {
+      
+        // Récupérer le point de la clé public sous forme d'octet 
+        byte[] encoded = ecPublicKey.getW().getAffineX().toByteArray();
+        byte[] encodedY = ecPublicKey.getW().getAffineY().toByteArray();
+        
+        // Concaténer les octets X et Y
+        byte[] fullEncoded = new byte[encoded.length + encodedY.length];
+        System.arraycopy(encoded, 0, fullEncoded, 0, encoded.length);         
+        System.arraycopy(encodedY, 0, fullEncoded, encoded.length, encodedY.length);  
+             
+        // Afficher en hex string x9.63
+        String hexPublicKey = DatatypeConverter.printHexBinary(fullEncoded).toUpperCase();
+        Log.d("PUBLIC_KEY", hexPublicKey);  
+    }
+}
+
+==================================================================
+
 implementation 'org.bouncycastle:bcprov-jdk15on:1.68'
 --------------------------
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
