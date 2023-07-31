@@ -1,3 +1,33 @@
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+public class Main {
+    public static void main(String[] args) {
+        String hexKey = "0123456789ABCDEF"; // Votre clé sous forme hexadécimale
+
+        // Convertir la chaîne hexadécimale en tableau d'octets
+        byte[] keyBytes = hexStringToByteArray(hexKey);
+
+        // Créer l'objet SecretKey à partir du tableau d'octets
+        SecretKey secretKey = new SecretKeySpec(keyBytes, "AES"); // Utilisez le nom de l'algorithme souhaité (par exemple, AES)
+
+        // Vous pouvez maintenant utiliser l'objet secretKey comme clé secrète dans votre code
+    }
+
+    public static byte[] hexStringToByteArray(String hexString) {
+        int length = hexString.length();
+        byte[] byteArray = new byte[length / 2];
+        for (int i = 0; i < length; i += 2) {
+            byteArray[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
+                                     + Character.digit(hexString.charAt(i + 1), 16));
+        }
+        return byteArray;
+    }
+}
+
+
+******************************************************************************
 String certificate = "..."; // Le certificat au format PEM 
 
 CertificateFactory cf = CertificateFactory.getInstance("X.509");  
