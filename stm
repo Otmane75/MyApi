@@ -1,3 +1,74 @@
+implementation 'org.bouncycastle:bcprov-jdk15on:1.68'
+--------------------------
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+
+public class PublicKeyExtractor {
+
+    public static PublicKey extractPublicKeyFromX963(String x963Certificate) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+        // Remove any BEGIN/END headers and trim the input string
+        x963Certificate = x963Certificate.replaceAll("-----BEGIN CERTIFICATE-----", "")
+                .replaceAll("-----END CERTIFICATE-----", "").trim();
+
+        // Decode the PEM format
+        PemReader pemReader = new PemReader(new StringReader(x963Certificate));
+        PemObject pemObject = pemReader.readPemObject();
+        pemReader.close();
+
+        // Parse the SubjectPublicKeyInfo
+        SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(pemObject.getContent());
+
+        // Get the encoded public key
+        byte[] encodedPublicKey = publicKeyInfo.getEncoded();
+
+        // Convert to PublicKey object
+        KeyFactory keyFactory = KeyFactory.getInstance("EC", "BC"); // BC for Bouncy Castle provider
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encodedPublicKey);
+        return keyFactory.generatePublic(publicKeySpec);
+    }
+}
+-------------------------------
+String x963Certificate = "-----BEGIN CERTIFICATE-----\n" +
+        "MIICoDCCAYgCCQD4+eUS2xKKEjANBgkqhkiG9w0BAQsFADASMRAwDgYDVQQDDAdU\n" +
+        "ZXN0IENBMB4XDTIwMTExMzE4MjU1NFoXDTIxMTExMzE4MjU1NFowEjEQMA4GA1UE\n" +
+        "AwwHVGVzdCBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN96rohXO\n" +
+        "V4dA5llINssELM+Tn7TK5cuIfBtSNruBuIeULGw3djJsGmWjq/Tp3gbnd6/tS6V1\n" +
+        "0+j6/6zPLuebDX8ed37OcSXWx0/5rpsBhmKFXlnsIR1KVl4DhVrYzVqMz9nZiqFs\n" +
+        "XJG50UT+wwqB8DMpmbd/D2b91uvFGSxwDLEPKa7q8Fv37rJQ83r8lBeEZxZl2DrM\n" +
+        "w2nJFJ2UyWZ6lLUGB/xnp5etX3iF7TN8oKRRyHhP3fRJd1oZxUj3/mUKL4R4T/9q\n" +
+        "9NVRE3J6nfoKjgNdJxW8Jp+zJwBjNTz1/PhZs2+QRy2Sf0twVsbE+RwmqoEV84be\n" +
+        "sKXQvfrGBYsCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAzriJ9d7otDPJxxtaLcmZ\n" +
+        "h9RlWmlypRK7YRtv+4vfb9kgEgzmqIw9Zo65f8Tojj+yxxs/rwUqrXaw6xytl7Rb\n" +
+        "jHzDzDzo30y4Gqt+z4STjnr8zsk4qE6hS5pmNubA19SmRqyPiHjzvt/hzQd9oRQ2\n" +
+        "ttS5XJDwLQDz/6/CFotJbg5NFTUgjK8fZNEkM5IwNTgnF3aJstGDNIFCafSxkGol\n" +
+        "ecygflEVsLhftu8PVi4y06hA7sMyN5CtA6UwAKjI2KoIV/CBDSNmHbgpC6BY6A8W\n" +
+        "sjhFWuGZxZfNEjyEw7Ic/QEa9x3ht6C3GOJSVxO7Dd5Kzdfab3wtMzUeDUNukWV7\n" +
+        "dQ==\n" +
+        "-----END CERTIFICATE-----";
+
+try {
+    PublicKey publicKey = PublicKeyExtractor.extractPublicKeyFromX963(x963Certificate);
+    // Utilisez la clé publique comme nécessaire
+    // ...
+} catch (Exception e) {
+    e.printStackTrace();
+}
+
+
+
+*----------------**-*-************************************************-------------------------------******************************************************
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Clé privée en format hexadécimal: 7aac3744ae8d46390918a1a2f620b8af6a31ad3c78917b2b930939cbbe8c737f
 Public key (X9.62 format) length: 04c4b7f138ce417b4ade720728d387f35d96f418285629a5f4eb498994c8d1ccbaf02cb98ba5e5f4ec08e888986c8e05a4328000f867c1495537ad83a65f239d21
 Public key (X9.62 format) length: 65
