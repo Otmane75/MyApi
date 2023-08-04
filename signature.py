@@ -1,4 +1,11 @@
 import PyPDF2
+
+with open('file.pdf', 'rb') as f:
+    pdf = PyPDF2.PdfFileReader(f)
+    signature_obj = pdf.getPage(0).getAnnotations()[0]
+    print(signature_obj.getSubject())
+------------------------------------------------------------------
+import PyPDF2
 annotation.update({
         NameObject('/Type'): NameObject('/Annot'),
         NameObject('/Subtype'): NameObject('/Widget'),
