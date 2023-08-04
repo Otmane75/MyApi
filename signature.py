@@ -1,5 +1,15 @@
 import PyPDF2
 
+import PyPDF2
+
+def extract_signature(pdf_file):
+    pdf = PyPDF2.PdfFileReader(pdf_file)
+    if '/VRI' in pdf.trailer:    
+        vri = pdf.getVRI()
+        return vri   
+    else:
+        return None
+
 def extract_signature(pdf_file):
     pdf = PyPDF2.PdfFileReader(pdf_file)
     if pdf.getSignature():
