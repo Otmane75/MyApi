@@ -1,4 +1,14 @@
 import PyPDF2
+annotation.update({
+        NameObject('/Type'): NameObject('/Annot'),
+        NameObject('/Subtype'): NameObject('/Widget'),
+        NameObject('/FT'): NameObject('/Sig'),
+        NameObject('/Rect'): createStringObject('[100 100 200 200]'),  # Coordonnées du rectangle de l'annotation
+        NameObject('/T'): createStringObject('MaSignature'),  # Nom de l'annotation
+        NameObject('/V'): createStringObject(''),  # Valeur de l'annotation (vide pour une signature)
+        NameObject('/AP'): createStringObject(''),  # Apparence de l'annotation (vide pour une signature)
+        NameObject('/P'): pdf.getPage(0),  # Page sur laquelle ajouter l'annotation (première page ici)
+    })
 
 import PyPDF2
 
