@@ -1,3 +1,43 @@
+import PyPDF2
+
+def extract_signature(pdf_file):
+    pdf = PyPDF2.PdfFileReader(pdf_file)
+    if pdf.getSignature():
+        signature = pdf.getSignature()
+        return signature
+    else:
+        return None
+from PyPDF2 import PdfFileWriter, PdfFileReader
+
+def add_signature(inputpdf, outputpdf):
+    # Load your input PDF
+    pdfReader = PdfFileReader(inputpdf)
+    pdfWriter = PdfFileWriter()
+    
+    # Add a signature page 
+    pdfWriter.addPage(pdfReader.getPage(0))
+    
+    # Get the signature and cert
+    signature = input("Signature: ")
+    cert = input("Cert: ") # Base64 encoded string
+    
+    # Add the signature field
+    pdfWriter.addAnnotation(
+        name         = "Signature1",
+        type         = "/Widget",
+        lowerLeft    =   (50, 50), 
+        lowerRight   =  (200 , 120 ),
+        contents     =  signature,
+        seal         = True,
+        embeddedfile =  cert,        
+        sigtype      =  "/DocMDP" 
+    )
+    
+    # Write to output PDF
+    with open(outputpdf, "wb") as out:
+        pdfWriter.write(out)
+
+-------------------------------------------------------------------
 import hashlib
 
 def sha512_for_pdf(pdf_path):
