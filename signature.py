@@ -1,5 +1,62 @@
 import PyPDF2
 
+def extraire_signature_pdf(nom_fichier):
+    try:
+        with open(nom_fichier, 'rb') as fichier_pdf:
+            lecteur_pdf = PyPDF2.PdfFileReader(fichier_pdf)
+            nb_pages = lecteur_pdf.getNumPages()
+            
+            for num_page in range(nb_pages):
+                page = lecteur_pdf.getPage(num_page)
+                annotations = page['/Annots']
+                
+                if annotations:
+                    for annotation in annotations:
+                        if annotation['/Subtype'] == '/Widget' and annotation['/FT'] == '/Sig':
+                            # Objet de signature trouvé
+                            return annotation
+                        
+            # Aucun objet de signature trouvé
+            return None
+        
+    except FileNotFoundError:
+        print("Le fichier PDF spécifié est introuvable.")
+
+
+import pdfrw
+
+def ajouter_champ_signature_pdf(nom_fichier, nom_champ):
+    try:
+        template_pdf = pdfrw.PdfReader(nom_fichier)
+        
+        # Créer un nouveau champ de signature
+        new_field = pdfrw.PdfDict(
+            FT='/Sig',
+            Ff=1,
+            V='',
+            P=template_pdf.pages[0]
+        )
+        
+        # Ajouter le champ de signature aux annotations de la première page
+        template_pdf.pages[0][pdfrw.PdfName.Annots].append(new_field)
+        
+        # Attribuer un nom au champ de signature
+        template_pdf.Root.AcroForm.Fields.append(pdfrw.PdfDict(
+            T=nom_champ,
+            V=template_pdf.pages[0][pdfrw.PdfName.Annots][-1]
+        ))
+        
+        # Écrire les modifications dans un nouveau fichier PDF
+        nouveau_fichier = f"nouveau_{nom_fichier}"
+        pdfrw.PdfWriter().write(nouveau_fichier, template_pdf)
+        
+        print(f"Champ de signature '{nom_champ}' ajouté avec succès au fichier '{nouveau_fichier}'.")
+        
+    except FileNotFoundError:
+        print("Le fichier PDF spécifié est introuvable.")
+-----------------------------------------------------------------------------------------------------------------------------
+import PyPDF2
+
 with open('file.pdf', 'rb') as f:
     pdf = PyPDF2.PdfFileReader(f)
     signature_obj = pdf.getPage(0).getAnnotations()[0]
