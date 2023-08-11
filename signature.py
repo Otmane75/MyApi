@@ -1,4 +1,25 @@
+import OpenSSL
 
+def cert_pem_to_der(pem_file):
+    with open(pem_file, 'rb') as f:
+        pem_data = f.read()
+    
+    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, pem_data)
+    der_data = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_ASN1, cert)
+
+    return der_data
+
+def cert_der_to_pem(der_data, pem_file):   
+    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, der_data)
+    pem_data = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
+
+    with open(pem_file, 'wb') as f:
+        f.write(pem_data)
+
+# Exemple
+der = cert_pem_to_der('cert.pem')
+cert_der_to_pem(der, 'cert-der.pem')
+------------------------
 import zlib
 import base64
 
