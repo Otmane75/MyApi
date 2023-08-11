@@ -1,3 +1,16 @@
+
+import zlib
+import base64
+
+with open('cert.pem', 'rb') as f:
+    data = f.read()
+
+compressed = zlib.compress(data)
+b64_compressed = base64.b64encode(compressed)
+
+print(f"Certificat original : {len(data)} octets")  
+print(f"Certificat compressé : {len(b64_compressed)} octets")
+-------------------
 import binascii
 
 def cert_pem_to_hex(pem_file):
