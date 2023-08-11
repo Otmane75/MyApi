@@ -1,3 +1,26 @@
+uint8_t* hexStringToBytes(String hexString) {
+
+  int len = hexString.length();
+  len = len / 2;
+  
+  uint8_t* bytes = (uint8_t*) malloc(len);
+
+  int j = 0;
+  for (int i = 0; i < hexString.length(); i+=2) {
+    char buf[3];
+    buf[0] = hexString[i];
+    buf[1] = hexString[i+1];
+    buf[2] = 0;
+    
+    bytes[j] = strtoul(buf, NULL, 16);
+    j++;
+  }
+
+  return bytes;
+}
+
+
+
 uint8_t* hexStringToBytes(const char* hexString) {
 
   // Calculer la longueur du tableau
