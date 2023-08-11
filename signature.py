@@ -1,3 +1,24 @@
+import base64
+
+def cert_pem_to_der(pem_file):
+    with open(pem_file, 'rb') as f:
+        pem_data = f.read()
+    
+    der_data = base64.b64decode(pem_data)
+    return der_data
+
+def cert_der_to_pem(der_data, pem_file):
+    pem_data = base64.b64encode(der_data)
+    
+    with open(pem_file, 'wb') as f:
+       f.write(pem_data)
+
+# Exemple
+der = cert_pem_to_der('cert.pem') 
+print(der) # affiche les données DER
+
+cert_der_to_pem(der, 'cert-conv.pem')
+----------------------------------
 import OpenSSL
 
 def cert_pem_to_der(pem_file):
