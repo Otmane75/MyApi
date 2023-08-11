@@ -1,3 +1,24 @@
+import binascii
+
+def cert_pem_to_hex(pem_file):
+    with open(pem_file, 'rb') as f:
+        pem_data = f.read()
+    hex_data = binascii.b2a_hex(pem_data).decode('ascii')
+    return hex_data
+
+def cert_hex_to_pem(hex_data, pem_file):
+    bin_data = binascii.a2b_hex(hex_data.encode('ascii'))
+    with open(pem_file, 'wb') as f:
+        f.write(bin_data)
+
+# Exemple
+pem_hex = cert_pem_to_hex('cert.pem') 
+print(pem_hex)
+
+cert_hex_to_pem(pem_hex, 'new_cert.pem')
+
+
+------------------------
 import PyPDF2
 
 def extraire_signature_pdf(nom_fichier):
