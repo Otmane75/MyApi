@@ -1,3 +1,22 @@
+void initialize_file() {
+    // Vérifier si le fichier existe
+    FILE* file = fopen("cert.txt", "r");
+    if (file == NULL) {
+        // Le fichier n'existe pas, le créer
+        file = fopen("cert.txt", "w");
+        if (file != NULL) {
+            // Initialiser le contenu du fichier si nécessaire
+            const char* initialContent = "Contenu initial du fichier";
+            fputs(initialContent, file);
+            fclose(file);
+        }
+    } else {
+        // Le fichier existe déjà, le fermer
+        fclose(file);
+    }
+}
+
+
 #include "stm32f4xx_hal.h"
 
 // Définir la taille maximale du tampon de texte
