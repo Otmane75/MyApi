@@ -1,3 +1,79 @@
+#include "stm32f4xx_hal.h"
+
+// Définir la taille maximale du tampon de texte
+#define BUFFER_SIZE 128
+
+// Fonction pour sauvegarder le texte dans le fichier
+void save_text_to_file(const char* text) {
+    // Ouvrir le fichier en mode d'écriture
+    FILE* file = fopen("cert.txt", "w");
+    if (file != NULL) {
+        // Écrire le texte dans le fichier
+        fputs(text, file);
+
+        // Fermer le fichier
+        fclose(file);
+    }
+}
+
+// Fonction pour lire le contenu du fichier
+void read_file_content() {
+    // Ouvrir le fichier en mode de lecture
+    FILE* file = fopen("cert.txt", "r");
+    if (file != NULL) {
+        // Tampon pour stocker le texte lu
+        char buffer[BUFFER_SIZE];
+
+        // Lire le contenu du fichier
+        while (fgets(buffer, BUFFER_SIZE, file) != NULL) {
+            // Afficher le texte lu
+            printf("%s", buffer);
+        }
+
+        // Fermer le fichier
+        fclose(file);
+    }
+}
+
+int main(void) {
+    // Initialiser le périphérique UART pour l'affichage des messages
+    HAL_Init();
+    __HAL_RCC_USART1_CLK_ENABLE();
+  
+    // Configurer les broches UART
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pin = GPIO_PIN_9 | GPIO_PIN_10;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  
+    // Configurer l'UART
+    USART_HandleTypeDef huart;
+    huart.Instance = USART1;
+    huart.Init.BaudRate = 115200;
+    huart.Init.WordLength = UART_WORDLENGTH_8B;
+    huart.Init.StopBits = UART_STOPBITS_1;
+    huart.Init.Parity = UART_PARITY_NONE;
+    huart.Init.Mode = UART_MODE_TX_RX;
+    huart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    HAL_USART_Init(&huart);
+  
+    // Texte à sauvegarder dans le fichier
+    const char* text = "Contenu du fichier de certificat";
+
+    // Sauvegarder le texte dans le fichier
+    save_text_to_file(text);
+
+    // Lire le contenu du fichier
+    read_file_content();
+
+    while (1) {
+        // Boucle principale du microcontrôleur
+    }
+}
+---------------------------------------------
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
 
