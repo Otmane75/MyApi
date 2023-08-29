@@ -1,4 +1,58 @@
+#include "stm32f4xx.h"
+#include "stm32f4xx_hal.h"
 
+#define CERT_FILE "certificat.txt"
+#define CERT_FILE_ADDR  0x08010000   // Adresse de départ du fichier certificat
+
+void save_cert(char* cert_text) {
+
+  HAL_FLASH_Unlock();
+
+  // Effacement préalable
+  FLASH_EraseInitTypeDef EraseInit; 
+  EraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
+  EraseInit.PageAddress = CERT_FILE_ADDR;
+  EraseInit.NbPages = 1;
+  uint32_t PageError;
+  HAL_FLASHEx_Erase(&EraseInit, &PageError);  
+
+  // Ecriture du nom du fichier
+  HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, CERT_FILE_ADDR, (uint32_t)CERT_FILE);
+
+  // Ecriture du texte
+  HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, CERT_FILE_ADDR + strlen(CERT_FILE), (uint32_t)cert_text);
+
+  HAL_FLASH_Lock();
+
+}
+
+char* load_cert() {
+
+  char* cert_text = (char*) (CERT_FILE_ADDR + strlen(CERT_FILE));
+  return cert_text;
+
+}
+
+void print_cert_addr() {
+
+  printf("Fichier certificat en 0x%X\n", CERT_FILE_ADDR);
+
+}
+
+int main(void) {
+
+  char cert_text[] = "Exemple de certificat";
+
+  save_cert(cert_text);
+
+  char* text = load_cert();
+  printf("Certificat : %s\n", text);
+
+  print_cert_addr();
+
+  return 0;
+}
+--------------------------------------
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
