@@ -1,3 +1,5 @@
+https://github.com/viktorvano/STM32F3Discovery_internal_FLASH/blob/master/Src/main.c
+----------------------------------------------------------------
 void initialize_file() {
     // Vérifier si le fichier existe
     FILE* file = fopen("cert.txt", "r");
